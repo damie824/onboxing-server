@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model User {
+  id          BigInt   @id @default(autoincrement())
+  username    String
+  profile     String
+  snsId       String
+  rate        Int
+  rateCount   Int
+
+  purchaseSessions PurchaseSession[]
+  carts            Cart[]
+  chats            Chat[]
+  groupUsers       GroupUser[]
+  postmans         Postman[]
+
+  @@index([username])
+  @@index([rate])
+}
+
+model Group {
+  id        BigInt   @id @default(autoincrement())
+  title     String
+  locationX Int
+  locationY Int
+
+  groupUsers GroupUser[]
+  carts      Cart[]
+  chats      Chat[]
+
+  @@index([title])
+  @@index([locationX])
+  @@index([locationY])
+}
+
+model GroupUser {
+  userId  BigInt
+  groupId BigInt
+
+  user  User  @relation(fields: [userId], references: [id])
+  group Group @relation(fields: [groupId], references: [id])
+
+  @@id([userId, groupId])
+  @@index([userId])
+  @@index([groupId])
+}
+
+model Cart {
+  id       BigInt   @id @default(autoincrement())
+  userId   BigInt
+  groupId  BigInt
+  orderId  BigInt
+  storeId  BigInt
+
+  user    User   @relation(fields: [userId], references: [id])
+  group   Group  @relation(fields: [groupId], references: [id])
+  order   Order  @relation(fields: [orderId], references: [id])
+  store   Store  @relation(fields: [storeId], references: [id])
+  session PurchaseSession[]
+  items   CartItems[]
+
+  @@index([userId])
+  @@index([groupId])
+  @@index([orderId])
+  @@index([storeId])
+}
+
+model CartItems {
+  productId BigInt
+  cartId    BigInt
+
+  product Product @relation(fields: [productId], references: [id])
+  cart    Cart    @relation(fields: [cartId], references: [id])
+
+  @@id([productId, cartId])
+  @@index([productId])
+  @@index([cartId])
+}
+
+model PurchaseSession {
+  id      String  @id @default(uuid())
+  userId  BigInt
+  cartId  BigInt
+
+  user User @relation(fields: [userId], references: [id])
+  cart Cart @relation(fields: [cartId], references: [id])
+
+  @@index([userId])
+  @@index([cartId])
+}
+
+model StoreCategory {
+  id     BigInt   @id @default(autoincrement())
+  title  String
+
+  stores Store[]
+
+  @@index([title])
+}
+
+model Store {
+  id          BigInt       @id @default(autoincrement())
+  categoryId  BigInt
+  title       String
+  description String
+  locationX   Int
+  locationY   Int
+
+  category StoreCategory @relation(fields: [categoryId], references: [id])
+  products Product[]
+  carts    Cart[]
+
+  @@index([title])
+  @@index([categoryId])
+}
+
+
+model Product {
+  id        BigInt   @id @default(autoincrement())
+  storeId   BigInt
+  title     String
+  contents  String
+  price     Int
+
+  store Store @relation(fields: [storeId], references: [id])
+  cartItems CartItems[]
+
+  @@index([storeId])
+  @@index([title])
+}
+
+model Order {
+  id         BigInt   @id @default(autoincrement())
+  postmanId  String
+  status     String
+  nowLocation String
+
+  postman Postman @relation(fields: [postmanId], references: [id])
+  carts   Cart[]
+
+  @@index([postmanId])
+}
+
+model Postman {
+  id     String  @id
+  userId BigInt
+
+  user  User   @relation(fields: [userId], references: [id])
+  orders Order[]
+
+  @@index([userId])
+}
+
+model Chat {
+  groupId   BigInt
+  userId    BigInt
+  contents  String
+  createdAt DateTime
+
+  user  User  @relation(fields: [userId], references: [id])
+  group Group @relation(fields: [groupId], references: [id])
+
+  @@id([groupId, userId])
+  @@index([userId])
+  @@index([groupId])
+  @@index([createdAt])
+}
