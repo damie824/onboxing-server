@@ -9,8 +9,10 @@ const passport = require("passport");
 const passportConfig = require("./auth");
 const session = require("express-session");
 const cors = require("cors");
+const http = require("http");
 
 const authRouter = require("./routes/auth");
+const groupRouter = require("./routes/group");
 
 const app = express();
 passportConfig();
@@ -46,7 +48,10 @@ app.use(passport.session());
 
 //라우터 설정
 app.use("/auth", authRouter);
+app.use("/group", groupRouter);
 
-app.listen(port, () => {
+//socket.io 설정
+const server = http.Server(app);
+require("./socket/chat")(server).listen(port, () => {
   console.log(`listening on port ${port}`);
 });

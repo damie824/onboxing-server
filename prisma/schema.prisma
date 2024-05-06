@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider     = "mysql"
+  provider     = "postgresql"
   url          = env("DATABASE_URL")
   relationMode = "prisma"
 }
@@ -31,6 +31,8 @@ model Group {
   title     String
   locationX Int
   locationY Int
+  purchased Boolean
+  thumbnail String
 
   groupUsers GroupUser[]
   carts      Cart[]
@@ -129,6 +131,7 @@ model Product {
   title     String
   contents  String
   price     Int
+  createdAt DateTime
 
   store Store @relation(fields: [storeId], references: [id])
   cartItems CartItems[]
@@ -160,6 +163,7 @@ model Postman {
 }
 
 model Chat {
+  id        BigInt @id @default(autoincrement())
   groupId   BigInt
   userId    BigInt
   contents  String
@@ -168,7 +172,6 @@ model Chat {
   user  User  @relation(fields: [userId], references: [id])
   group Group @relation(fields: [groupId], references: [id])
 
-  @@id([groupId, userId])
   @@index([userId])
   @@index([groupId])
   @@index([createdAt])
